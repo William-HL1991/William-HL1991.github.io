@@ -20,20 +20,26 @@
     var CONFIG = {"hostname":"william-hl1991.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":"tue","color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideDownIn"}}};
   </script>
 
-  <meta name="description" content="&amp;ensp;&amp;ensp;长久以来iOS上的电量测试相关信息都是很单一，唯一能获取电量详细信息的私有接口也在iOS9中被苹果官方封掉了。传统方案获取电量的路几乎在新的系统版本下被堵死，使得我们不得不寻求新的电量获取方式。">
+  <meta name="description" content="已经研究过appium+xcode10方式启动任意应用，之后通过TraceUlity解析trace数据获取性能数据，当然在ppt中也写过，知其然知其所以然，appium是通过Instruments -w udid -t Activity Monitor -D &#x2F;var&#x2F;folders&#x2F;kd&#x2F;6rx5zx0933jbprw8dygcr4s40000gn&#x2F;T&#x2F;20181120-93821-1u26x7">
 <meta property="og:type" content="article">
-<meta property="og:title" content="使用iOS诊断进行iOS电量测试">
-<meta property="og:url" content="https://william-hl1991.github.io/2018/03/01/%E4%BD%BF%E7%94%A8iOS%E8%AF%8A%E6%96%AD%E8%BF%9B%E8%A1%8CiOS%E7%94%B5%E9%87%8F%E6%B5%8B%E8%AF%95/index.html">
+<meta property="og:title" content="Xcode Instruments 命令行方式调用">
+<meta property="og:url" content="https://william-hl1991.github.io/2019/03/22/Xcode-Instruments-%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%96%B9%E5%BC%8F%E8%B0%83%E7%94%A8/index.html">
 <meta property="og:site_name" content="William">
-<meta property="og:description" content="&amp;ensp;&amp;ensp;长久以来iOS上的电量测试相关信息都是很单一，唯一能获取电量详细信息的私有接口也在iOS9中被苹果官方封掉了。传统方案获取电量的路几乎在新的系统版本下被堵死，使得我们不得不寻求新的电量获取方式。">
+<meta property="og:description" content="已经研究过appium+xcode10方式启动任意应用，之后通过TraceUlity解析trace数据获取性能数据，当然在ppt中也写过，知其然知其所以然，appium是通过Instruments -w udid -t Activity Monitor -D &#x2F;var&#x2F;folders&#x2F;kd&#x2F;6rx5zx0933jbprw8dygcr4s40000gn&#x2F;T&#x2F;20181120-93821-1u26x7">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2018-03-01T05:18:05.000Z">
-<meta property="article:modified_time" content="2020-04-22T09:56:12.555Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/William-HL1991/BlogAlbum/master/GUI.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/William-HL1991/BlogAlbum/master/find.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/William-HL1991/BlogAlbum/master/instrumen-s.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/William-HL1991/BlogAlbum/master/sub-temp.png">
+<meta property="article:published_time" content="2019-03-22T09:20:49.000Z">
+<meta property="article:modified_time" content="2020-04-22T10:01:31.655Z">
 <meta property="article:author" content="William">
-<meta property="article:tag" content="iOS技术 - iOS - 电量">
+<meta property="article:tag" content="测试">
+<meta property="article:tag" content="iOS">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/William-HL1991/BlogAlbum/master/GUI.png">
 
-<link rel="canonical" href="https://william-hl1991.github.io/2018/03/01/%E4%BD%BF%E7%94%A8iOS%E8%AF%8A%E6%96%AD%E8%BF%9B%E8%A1%8CiOS%E7%94%B5%E9%87%8F%E6%B5%8B%E8%AF%95/">
+<link rel="canonical" href="https://william-hl1991.github.io/2019/03/22/Xcode-Instruments-%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%96%B9%E5%BC%8F%E8%B0%83%E7%94%A8/">
 
 
 <script id="page-configurations">
@@ -46,7 +52,7 @@
   };
 </script>
 
-  <title>使用iOS诊断进行iOS电量测试 | William</title>
+  <title>Xcode Instruments 命令行方式调用 | William</title>
   
 
 
@@ -170,7 +176,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://william-hl1991.github.io/2018/03/01/%E4%BD%BF%E7%94%A8iOS%E8%AF%8A%E6%96%AD%E8%BF%9B%E8%A1%8CiOS%E7%94%B5%E9%87%8F%E6%B5%8B%E8%AF%95/">
+    <link itemprop="mainEntityOfPage" href="https://william-hl1991.github.io/2019/03/22/Xcode-Instruments-%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%96%B9%E5%BC%8F%E8%B0%83%E7%94%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -183,7 +189,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          使用iOS诊断进行iOS电量测试
+          Xcode Instruments 命令行方式调用
         </h1>
 
         <div class="post-meta">
@@ -193,14 +199,14 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2018-03-01 13:18:05" itemprop="dateCreated datePublished" datetime="2018-03-01T13:18:05+08:00">2018-03-01</time>
+              <time title="创建时间：2019-03-22 17:20:49" itemprop="dateCreated datePublished" datetime="2019-03-22T17:20:49+08:00">2019-03-22</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-22 17:56:12" itemprop="dateModified" datetime="2020-04-22T17:56:12+08:00">2020-04-22</time>
+                <time title="修改时间：2020-04-22 18:01:31" itemprop="dateModified" datetime="2020-04-22T18:01:31+08:00">2020-04-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -218,14 +224,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.6k</span>
+              <span>1.3k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
+              <span>1 分钟</span>
             </span>
 
         </div>
@@ -237,49 +243,35 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>&ensp;&ensp;长久以来iOS上的电量测试相关信息都是很单一，唯一能获取电量详细信息的私有接口也在iOS9中被苹果官方封掉了。传统方案获取电量的路几乎在新的系统版本下被堵死，使得我们不得不寻求新的电量获取方式。</p>
+        <p>已经研究过<code>appium+xcode10</code>方式启动任意应用，之后通过<code>TraceUlity</code>解析<code>trace</code>数据获取性能数据，当然在ppt中也写过，知其然知其所以然，appium是通过<code>Instruments -w udid -t Activity Monitor -D /var/folders/kd/6rx5zx0933jbprw8dygcr4s40000gn/T/20181120-93821-1u26x7f.vt4y/appium_perf_Activity_Monitor_1545301850892.trace -l 60000 -p 12620</code>来启动instrument录制性能的。那么顺势就研究一下如何通过命令行启动instruments吧！</p>
 <a id="more"></a>
 
-<h1 id="什么是iOS-Diagnostics"><a href="#什么是iOS-Diagnostics" class="headerlink" title="什么是iOS Diagnostics"></a>什么是iOS Diagnostics</h1><p>&ensp;&ensp;iOS diagnostics 是iOS本身自带的诊断系统，在这个诊断系统中包含电量的相关信息记录，这些信息以Sqlite的形式保存，并定期传给苹果服务器，以供苹果相关人员分析。由此可以通过读取iOS系统记录的数据来进行电量测试，这个数据由iOS系统提供，并且记录了每个app的耗电量，故可以得到比较准确的耗电量信息。</p>
-<h1 id="如何通过诊断测试具体的耗电量"><a href="#如何通过诊断测试具体的耗电量" class="headerlink" title="如何通过诊断测试具体的耗电量"></a>如何通过诊断测试具体的耗电量</h1><p>测试过程中需要注意的点</p>
+<h2 id="基本使用方式"><a href="#基本使用方式" class="headerlink" title="基本使用方式"></a>基本使用方式</h2><p>查看<code>instruments</code>的使用帮助：</p>
+<figure class="highlight javascript"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">baidudeMacBook-Pro:~ huanglei09$ instruments</span><br><span class="line">instruments, version <span class="number">10.2</span> (<span class="number">64490.65</span>)</span><br><span class="line">usage: instruments [-t template] [-D <span class="built_in">document</span>] [-l timeLimit] [-w device] [-P package] [[-p pid] | [application [-e variable value] [argument ...]]]</span><br></pre></td></tr></table></figure>
 <ul>
-<li><p>为保证测试的准确性尽量不要开启其他应用（系统应用除外）</p>
-</li>
-<li><p>记录下操作时间和对应的业务场景（用于还原业务对应的耗电量）</p>
-</li>
-<li><p>最好使用iOS10及以上的设备（便于收集电量数据）</p>
-<h2 id="iOS10及以上的设备"><a href="#iOS10及以上的设备" class="headerlink" title="iOS10及以上的设备"></a>iOS10及以上的设备</h2></li>
+<li><code>-t</code>是指定模板</li>
+<li><code>-D</code>生成的<code>.trace</code>文件名和位置</li>
+<li><code>-l</code>指定运行时间，此处单位为<code>ms</code></li>
+<li><code>-w</code> 指定设备id</li>
+<li><code>-P</code> 指定包名：如贴吧的 ：<code>com.baidu.tieba</code></li>
+<li><code>-p</code> 指定程序的<code>pid</code>，pid再运行的时候不好拿到，可以直接写名称，如贴吧的可以写<code>TBClient.app</code></li>
+<li><code>-e</code> UIASCRIPT <code>&lt;path_to_script.js&gt;</code> </li>
+<li><code>-e</code> UIARESULTSPATH <code>&lt;output_results_path&gt;</code><br>上面的两个<code>-e</code>需要配合起来使用分别是：指定运行的 <code>js</code> 脚本存放的位置和指定输出结果存放的路径。<code>xcode</code>换成<code>xctes</code>t之后<code>-e</code> 一般都不用于移动端测试。<br><code>-t</code>指定模板的时候最好不要使用固定路径，要使用模板的名称，因为每次更新xcode，模板的路径位置就会发生改变。</li>
 </ul>
+<h2 id="如何查找模板名称"><a href="#如何查找模板名称" class="headerlink" title="如何查找模板名称"></a>如何查找模板名称</h2><ol>
+<li><p>可以通过<code>instruments GUI</code>上的名称来写。<br><img src="https://raw.githubusercontent.com/William-HL1991/BlogAlbum/master/GUI.png" alt="GUI"></p>
+</li>
+<li><p>通过查找模板的位置来确定<br>切换到instruments的目录，<code>/Applications/Xcode.app/Contents/Applications/Instruments.app</code>通过终端查找<code>find ./ -name *.tracetemplate</code>：<br><img src="https://raw.githubusercontent.com/William-HL1991/BlogAlbum/master/find.png" alt="终端查找"><br>查看<code>.tracetemplate</code>前的名称来确定。</p>
+</li>
+<li><p>更简单的方式，通过instruments命令：在终端输入<code>instruments -s</code><br>然后查看最后<code>Known Templates:</code>来确定模板的名称。<br><img src="https://raw.githubusercontent.com/William-HL1991/BlogAlbum/master/instrumen-s.png" alt="instrumens命令!"></p>
+</li>
+</ol>
+<h2 id="高阶用法"><a href="#高阶用法" class="headerlink" title="高阶用法"></a>高阶用法</h2><p>同时监控好几个模板，导出一个数据自己的<code>.tracetemplate</code>文件。</p>
 <ol>
-<li>使用开发者账号下载profile证书，<a href="https://developer.apple.com/services-account/download?path=/iOS/iOS_Logs/BatteryLife.mobileconfig" target="_blank" rel="noopener">链接</a>。通过Airdrop安装到手机上。<ol start="2">
-<li>正常进行测试，记录下业务场景对应时间点。</li>
-<li>静置半个小时左右，通过iTunes同步到电脑。<br>在电脑上对应的目录如下：</li>
+<li>首先打开<code>instruments</code>，在主界面选择需要测试的模板,如下图，通过右上角的<code>+</code>添加。<br><img src="https://raw.githubusercontent.com/William-HL1991/BlogAlbum/master/sub-temp.png" alt="多模板!"></li>
+<li>选择完所有需要的模板后，点击Instruments -&gt; file -&gt; Save As Template 保存，记录好模板的名称。</li>
+<li>然后就可以用自己的模板进行测试。</li>
 </ol>
-</li>
-</ol>
-<p><code>macos:~/Library/Logs/CrashReporter/MobileDevice/[Your_Device_Name]/</code></p>
-<p><code>Windows:C:\Users\[Your_User_Name]\AppData\Roaming\AppleComputer\Logs\CrashReporter\MobileDevice\ [Your_Device_Name]\</code></p>
-<ol start="4">
-<li>电量数据库以”Powerlog_”开头，以”.PLSQL”<br>或者”.PLSQL.gz”结尾。</li>
-</ol>
-<h2 id="iOS10以下的设备"><a href="#iOS10以下的设备" class="headerlink" title="iOS10以下的设备"></a>iOS10以下的设备</h2><p>提供一个思路：可以通过 mitmproxy + diags://123456拦截接口的形式获得，接口：<a href="https://iosdiags.apple.com/ios/TestConfiguration/1.2" target="_blank" rel="noopener">https://iosdiags.apple.com/ios/TestConfiguration/1.2</a></p>
-<h1 id="电量数据库的解读与分析"><a href="#电量数据库的解读与分析" class="headerlink" title="电量数据库的解读与分析"></a>电量数据库的解读与分析</h1><style><br>table tr:hover {<br>    background: #efefef;<br>}<br>table td:nth-child(1) {<br>    word-wrap:break-word;<br>}<br>table td:nth-child(2) {<br>    word-wrap:break-word;<br>}<br>table td:nth-child(3) {<br>    word-wrap:break-word;<br>}<br></style>
-<table><thead><tr><th>表名</th><th>记录内容</th><th>使用意义</th></tr></thead><tbody><tr><td>PLAccountingOperator_EventNone_Nodes</td><td>记录了所有应用的noteID</td><td>得到系统应用和安装应用</td></tr><tr><td>PLAccountingOperator_Aggregate_RootNodeEnergy</td><td>记录了每个noteID的电量消耗</td><td>统计各个引用的耗电量</td></tr><tr><td>PLAppTimeService_Aggregate_AppRunTime</td><td>记录了app的运行状态，一小时记录一次</td><td>找到被测应用的运行时间段</td></tr><tr><td>PLBatteryAgent_EventBackward_Battery</td><td>记录了整机的电量变化，20秒记录一次（电压、电流、温度等等</td><td>详细电量的统计来源</td></tr><tr><td>PLIOReportAgent_EventBackward_EnergyModel</td><td>记录了IO相关的电量消耗（SoC、DRAM、IPS等等）</td><td>系统底层硬件的耗电量</td></tr><tr><td>PLSpringBoardAgent_Aggregate_SBNotifications_Aggregat</td><td>记录了推送通知的时间和数量</td><td>推送对耗电的影响</td></tr><tr><td>PLLocationAgent_EventForward_ClientStatus</td><td>定位的相关信息</td><td>定位信息对耗电的影响</td></tr></tbody></table>
-
-<p>综合上面的表数据库我们可以精确获取到app在某个时间段的电量消耗，一次记录下操作场景的时间段，之后通过读取数据库的数据，就可以精确获取该场景在该机器上的电量消耗情况。</p>
-<p>通过PLAppTimeService_Aggregate_AppRunTim 表获取到app的运行情况，然后根据app运行的情况PLAccountingOperator_Aggregate_RootNodeEne这个表获取到app的电量消耗情况。依据这里的耗电情况算出每个部分的耗电百分比，然后通过PLBatteryAgent_EventBackward_Battery可以获得此事件的详细耗电量（公式：W=UIt）。</p>
-<h1 id="iOS诊断耗电量测试总结"><a href="#iOS诊断耗电量测试总结" class="headerlink" title="iOS诊断耗电量测试总结"></a>iOS诊断耗电量测试总结</h1><p>首先装上对应的system debug证书，然后开始执行日常测试，记录下哪个时间段对应的是哪个场景，执行测试完成后，取下系统的电量数据库，对该次测试的各个场景的耗电量做一个全面的评价。</p>
-<h1 id="电量优化的方案"><a href="#电量优化的方案" class="headerlink" title="电量优化的方案"></a>电量优化的方案</h1><h4 id="1-合理使用NSDateFormatter-和-NSCalendar这种高开销对象"><a href="#1-合理使用NSDateFormatter-和-NSCalendar这种高开销对象" class="headerlink" title="1. 合理使用NSDateFormatter 和 NSCalendar这种高开销对象"></a>1. 合理使用NSDateFormatter 和 NSCalendar这种高开销对象</h4><p>&ensp;&ensp;性能测试表明，NSDateFormatter的性能瓶颈是由于NSDate格式到NSString格式的转化，所以把NSDateFormatter创建单例意义不大。推荐的做法是，把最常用到的日期格式做缓存。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">static NSDateFormatter *cachedDateFormatter &#x3D;nil;</span><br><span class="line"> + (NSDateFormatter *)cachedDateFormatter &#123;</span><br><span class="line">     if(!dateFormatter)&#123;</span><br><span class="line">       dateFormatter &#x3D; [[NSDateFormatter alloc] init];</span><br><span class="line">       [dateFormatter setDateFormat: @“YYYY-MM-dd HH:mm:ss”];</span><br><span class="line">     &#125;</span><br><span class="line">     return dataFormatter;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="2-不要频繁的刷新页面，尽量不要使用reloadData。"><a href="#2-不要频繁的刷新页面，尽量不要使用reloadData。" class="headerlink" title="2. 不要频繁的刷新页面，尽量不要使用reloadData。"></a>2. 不要频繁的刷新页面，尽量不要使用reloadData。</h4><h4 id="3-图片处理"><a href="#3-图片处理" class="headerlink" title="3. 图片处理"></a>3. 图片处理</h4><ul>
-<li>图片与imageView相同大小，避免多余运算</li>
-<li>可以使用整幅的图片，增加应用体积，但是节省CPU消耗</li>
-<li>可调整大小的图片，可以省去一些不必要的空间</li>
-<li>CALayer,CoreGraphics,甚至OpenGL来绘制，消耗CPU<h4 id="4-选择正确的集合"><a href="#4-选择正确的集合" class="headerlink" title="4. 选择正确的集合"></a>4. 选择正确的集合</h4></li>
-<li>NSArray，使用index来查找很快（插入和删除很慢）</li>
-<li>字典，使用键来查找很快</li>
-<li>NSSets，是无序的，用键查找很快，插入/删除很快<h4 id="5-懒加载，不要一次性创建所有的subview，而是需要时才创建"><a href="#5-懒加载，不要一次性创建所有的subview，而是需要时才创建" class="headerlink" title="5. 懒加载，不要一次性创建所有的subview，而是需要时才创建"></a>5. 懒加载，不要一次性创建所有的subview，而是需要时才创建</h4><h4 id="6-进行必要的缓存"><a href="#6-进行必要的缓存" class="headerlink" title="6. 进行必要的缓存"></a>6. 进行必要的缓存</h4><h4 id="7-尽量减少透明或者半透明，会产生额外的运算"><a href="#7-尽量减少透明或者半透明，会产生额外的运算" class="headerlink" title="7. 尽量减少透明或者半透明，会产生额外的运算"></a>7. 尽量减少透明或者半透明，会产生额外的运算</h4></li>
-</ul>
 
     </div>
 
@@ -315,7 +307,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://william-hl1991.github.io/2018/03/01/%E4%BD%BF%E7%94%A8iOS%E8%AF%8A%E6%96%AD%E8%BF%9B%E8%A1%8CiOS%E7%94%B5%E9%87%8F%E6%B5%8B%E8%AF%95/" title="使用iOS诊断进行iOS电量测试">https://william-hl1991.github.io/2018/03/01/使用iOS诊断进行iOS电量测试/</a>
+    <a href="https://william-hl1991.github.io/2019/03/22/Xcode-Instruments-%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%96%B9%E5%BC%8F%E8%B0%83%E7%94%A8/" title="Xcode Instruments 命令行方式调用">https://william-hl1991.github.io/2019/03/22/Xcode-Instruments-命令行方式调用/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -327,7 +319,8 @@
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/iOS%E6%8A%80%E6%9C%AF-iOS-%E7%94%B5%E9%87%8F/" rel="tag"><i class="fa fa-tag"></i> iOS技术 - iOS - 电量</a>
+              <a href="/tags/%E6%B5%8B%E8%AF%95/" rel="tag"><i class="fa fa-tag"></i> 测试</a>
+              <a href="/tags/iOS/" rel="tag"><i class="fa fa-tag"></i> iOS</a>
           </div>
 
         
@@ -336,10 +329,13 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2018/08/10/iOS%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E5%8E%9F%E5%9B%A0%E5%88%86%E6%9E%90/" rel="prev" title="iOS内存泄露原因分析">
-      <i class="fa fa-chevron-left"></i> iOS内存泄露原因分析
+    <a href="/2019/07/10/AM%E5%91%BD%E4%BB%A4/" rel="prev" title="AM命令">
+      <i class="fa fa-chevron-left"></i> AM命令
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2019/02/28/RESETful-API%E8%AE%BE%E8%AE%A1%E8%A7%84%E8%8C%83/" rel="next" title="RESETful API设计规范">
+      RESETful API设计规范 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -398,7 +394,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#什么是iOS-Diagnostics"><span class="nav-text">什么是iOS Diagnostics</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#如何通过诊断测试具体的耗电量"><span class="nav-text">如何通过诊断测试具体的耗电量</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#iOS10及以上的设备"><span class="nav-text">iOS10及以上的设备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iOS10以下的设备"><span class="nav-text">iOS10以下的设备</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#电量数据库的解读与分析"><span class="nav-text">电量数据库的解读与分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#iOS诊断耗电量测试总结"><span class="nav-text">iOS诊断耗电量测试总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#电量优化的方案"><span class="nav-text">电量优化的方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-合理使用NSDateFormatter-和-NSCalendar这种高开销对象"><span class="nav-text">1. 合理使用NSDateFormatter 和 NSCalendar这种高开销对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-不要频繁的刷新页面，尽量不要使用reloadData。"><span class="nav-text">2. 不要频繁的刷新页面，尽量不要使用reloadData。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-图片处理"><span class="nav-text">3. 图片处理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-选择正确的集合"><span class="nav-text">4. 选择正确的集合</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-懒加载，不要一次性创建所有的subview，而是需要时才创建"><span class="nav-text">5. 懒加载，不要一次性创建所有的subview，而是需要时才创建</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-进行必要的缓存"><span class="nav-text">6. 进行必要的缓存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7-尽量减少透明或者半透明，会产生额外的运算"><span class="nav-text">7. 尽量减少透明或者半透明，会产生额外的运算</span></a></li></ol></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本使用方式"><span class="nav-text">基本使用方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何查找模板名称"><span class="nav-text">如何查找模板名称</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#高阶用法"><span class="nav-text">高阶用法</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

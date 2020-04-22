@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"william-hl1991.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":"tue","color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideDownIn"}}};
+  </script>
+
+  <meta name="description" content="简单介绍am指令是 activity manager的缩写，可以启动Service、Broadcast，杀进程，监控等功能，这些功能都非常便捷调试程序。 可以通过adb shell 进入Android 的Linux命令界面，输入am -help查看详细命令，先介绍几个简单用法. &amp;#123; .theme-peacock &amp;#125;12345678&#x2F;&#x2F;使用Action方式打开系统设置-输入法设置">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AM命令">
+<meta property="og:url" content="https://william-hl1991.github.io/2019/07/10/AM%E5%91%BD%E4%BB%A4/index.html">
+<meta property="og:site_name" content="William">
+<meta property="og:description" content="简单介绍am指令是 activity manager的缩写，可以启动Service、Broadcast，杀进程，监控等功能，这些功能都非常便捷调试程序。 可以通过adb shell 进入Android 的Linux命令界面，输入am -help查看详细命令，先介绍几个简单用法. &amp;#123; .theme-peacock &amp;#125;12345678&#x2F;&#x2F;使用Action方式打开系统设置-输入法设置">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-07-10T09:17:48.000Z">
+<meta property="article:modified_time" content="2020-04-22T09:56:46.712Z">
+<meta property="article:author" content="William">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="测试">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://william-hl1991.github.io/2019/07/10/AM%E5%91%BD%E4%BB%A4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>AM命令 | William</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="William" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">William</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">不管走了多远都不要忘记为什么出发</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">12</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">4</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">8</span></a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://william-hl1991.github.io/2019/07/10/AM%E5%91%BD%E4%BB%A4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="William">
+      <meta itemprop="description" content="工作总结与记录">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="William">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AM命令
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-07-10 17:17:48" itemprop="dateCreated datePublished" datetime="2019-07-10T17:17:48+08:00">2019-07-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-22 17:56:46" itemprop="dateModified" datetime="2020-04-22T17:56:46+08:00">2020-04-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>16k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>14 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="简单介绍"><a href="#简单介绍" class="headerlink" title="简单介绍"></a>简单介绍</h1><p>am指令是 activity manager的缩写，可以启动Service、Broadcast，杀进程，监控等功能，这些功能都非常便捷调试程序。</p>
+<p>可以通过adb shell 进入Android 的Linux命令界面，输入am -help查看详细命令，先介绍几个简单用法.</p>
+<figure class="highlight shell"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//使用Action方式打开系统设置-输入法设置</span><br><span class="line">am start -a android.settings.INPUT_METHOD_SETTINGS</span><br><span class="line"></span><br><span class="line">//使用Action方式打开网站https://amberweather.com</span><br><span class="line">am start -a android.intent.action.VIEW -d  https://amberweather.com</span><br><span class="line"></span><br><span class="line">//打开拨号界面，并传递一个DATA_URI数据给拨号界面</span><br><span class="line">am start -a android.intent.action.CALL -d tel:10086</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+
+<h1 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h1><p>通过<code>am -h</code>可以查看am完整的用法：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br></pre></td><td class="code"><pre><span class="line">sirius:/ $ am -h</span><br><span class="line">Activity manager (activity) commands:</span><br><span class="line">  help</span><br><span class="line">      Print this help text.</span><br><span class="line">  start-activity [-D] [-N] [-W] [-P &lt;FILE&gt;] [--start-profiler &lt;FILE&gt;]</span><br><span class="line">          [--sampling INTERVAL] [--streaming] [-R COUNT] [-S]</span><br><span class="line">          [--track-allocation] [--user &lt;USER_ID&gt; | current] &lt;INTENT&gt;</span><br><span class="line">      Start an Activity.  Options are:</span><br><span class="line">      -D: enable debugging</span><br><span class="line">      -N: enable native debugging</span><br><span class="line">      -W: wait for launch to complete</span><br><span class="line">      --start-profiler &lt;FILE&gt;: start profiler and send results to &lt;FILE&gt;</span><br><span class="line">      --sampling INTERVAL: use sample profiling with INTERVAL microseconds</span><br><span class="line">          between samples (use with --start-profiler)</span><br><span class="line">      --streaming: stream the profiling output to the specified file</span><br><span class="line">          (use with --start-profiler)</span><br><span class="line">      -P &lt;FILE&gt;: like above, but profiling stops when app goes idle</span><br><span class="line">      --attach-agent &lt;agent&gt;: attach the given agent before binding</span><br><span class="line">      --attach-agent-bind &lt;agent&gt;: attach the given agent during binding</span><br><span class="line">      -R: repeat the activity launch &lt;COUNT&gt; times.  Prior to each repeat,</span><br><span class="line">          the top activity will be finished.</span><br><span class="line">      -S: force stop the target app before starting the activity</span><br><span class="line">      --track-allocation: enable tracking of object allocations</span><br><span class="line">      --user &lt;USER_ID&gt; | current: Specify which user to run as; if not</span><br><span class="line">          specified then run as the current user.</span><br><span class="line">      --windowingMode &lt;WINDOWING_MODE&gt;: The windowing mode to launch the activity into.</span><br><span class="line">      --activityType &lt;ACTIVITY_TYPE&gt;: The activity type to launch the activity as.</span><br><span class="line">  start-service [--user &lt;USER_ID&gt; | current] &lt;INTENT&gt;</span><br><span class="line">      Start a Service.  Options are:</span><br><span class="line">      --user &lt;USER_ID&gt; | current: Specify which user to run as; if not</span><br><span class="line">          specified then run as the current user.</span><br><span class="line">  start-foreground-service [--user &lt;USER_ID&gt; | current] &lt;INTENT&gt;</span><br><span class="line">      Start a foreground Service.  Options are:</span><br><span class="line">      --user &lt;USER_ID&gt; | current: Specify which user to run as; if not</span><br><span class="line">          specified then run as the current user.</span><br><span class="line">  stop-service [--user &lt;USER_ID&gt; | current] &lt;INTENT&gt;</span><br><span class="line">      Stop a Service.  Options are:</span><br><span class="line">      --user &lt;USER_ID&gt; | current: Specify which user to run as; if not</span><br><span class="line">          specified then run as the current user.</span><br><span class="line">  broadcast [--user &lt;USER_ID&gt; | all | current] &lt;INTENT&gt;</span><br><span class="line">      Send a broadcast Intent.  Options are:</span><br><span class="line">      --user &lt;USER_ID&gt; | all | current: Specify which user to send to; if not</span><br><span class="line">          specified then send to all users.</span><br><span class="line">      --receiver-permission &lt;PERMISSION&gt;: Require receiver to hold permission.</span><br><span class="line">  instrument [-r] [-e &lt;NAME&gt; &lt;VALUE&gt;] [-p &lt;FILE&gt;] [-w]</span><br><span class="line">          [--user &lt;USER_ID&gt; | current] [--no-hidden-api-checks]</span><br><span class="line">          [--no-window-animation] [--abi &lt;ABI&gt;] &lt;COMPONENT&gt;</span><br><span class="line">      Start an Instrumentation.  Typically this target &lt;COMPONENT&gt; is in the</span><br><span class="line">      form &lt;TEST_PACKAGE&gt;/&lt;RUNNER_CLASS&gt; or only &lt;TEST_PACKAGE&gt; if there</span><br><span class="line">      is only one instrumentation.  Options are:</span><br><span class="line">      -r: print raw results (otherwise decode REPORT_KEY_STREAMRESULT).  Use with</span><br><span class="line">          [-e perf true] to generate raw output for performance measurements.</span><br><span class="line">      -e &lt;NAME&gt; &lt;VALUE&gt;: set argument &lt;NAME&gt; to &lt;VALUE&gt;.  For test runners a</span><br><span class="line">          common form is [-e &lt;testrunner_flag&gt; &lt;value&gt;[,&lt;value&gt;...]].</span><br><span class="line">      -p &lt;FILE&gt;: write profiling data to &lt;FILE&gt;</span><br><span class="line">      -m: Write output as protobuf to stdout (machine readable)</span><br><span class="line">      -f &lt;Optional PATH/TO/FILE&gt;: Write output as protobuf to a file (machine</span><br><span class="line">          readable). If path is not specified, default directory and file name will</span><br><span class="line">          be used: /sdcard/instrument-logs/log-yyyyMMdd-hhmmss-SSS.instrumentation_data_proto</span><br><span class="line">      -w: wait for instrumentation to finish before returning.  Required for</span><br><span class="line">          test runners.</span><br><span class="line">      --user &lt;USER_ID&gt; | current: Specify user instrumentation runs in;</span><br><span class="line">          current user if not specified.</span><br><span class="line">      --no-hidden-api-checks: disable restrictions on use of hidden API.</span><br><span class="line">      --no-window-animation: turn off window animations while running.</span><br><span class="line">      --abi &lt;ABI&gt;: Launch the instrumented process with the selected ABI.</span><br><span class="line">          This assumes that the process supports the selected ABI.</span><br><span class="line">  trace-ipc [start|stop] [--dump-file &lt;FILE&gt;]</span><br><span class="line">      Trace IPC transactions.</span><br><span class="line">      start: start tracing IPC transactions.</span><br><span class="line">      stop: stop tracing IPC transactions and dump the results to file.</span><br><span class="line">      --dump-file &lt;FILE&gt;: Specify the file the trace should be dumped to.</span><br><span class="line">  profile [start|stop] [--user &lt;USER_ID&gt; current] [--sampling INTERVAL]</span><br><span class="line">          [--streaming] &lt;PROCESS&gt; &lt;FILE&gt;</span><br><span class="line">      Start and stop profiler on a process.  The given &lt;PROCESS&gt; argument</span><br><span class="line">        may be either a process name or pid.  Options are:</span><br><span class="line">      --user &lt;USER_ID&gt; | current: When supplying a process name,</span><br><span class="line">          specify user of process to profile; uses current user if not specified.</span><br><span class="line">      --sampling INTERVAL: use sample profiling with INTERVAL microseconds</span><br><span class="line">          between samples</span><br><span class="line">      --streaming: stream the profiling output to the specified file</span><br><span class="line">  dumpheap [--user &lt;USER_ID&gt; current] [-n] [-g] &lt;PROCESS&gt; &lt;FILE&gt;</span><br><span class="line">      Dump the heap of a process.  The given &lt;PROCESS&gt; argument may</span><br><span class="line">        be either a process name or pid.  Options are:</span><br><span class="line">      -n: dump native heap instead of managed heap</span><br><span class="line">      -g: force GC before dumping the heap</span><br><span class="line">      --user &lt;USER_ID&gt; | current: When supplying a process name,</span><br><span class="line">          specify user of process to dump; uses current user if not specified.</span><br><span class="line">  set-debug-app [-w] [--persistent] &lt;PACKAGE&gt;</span><br><span class="line">      Set application &lt;PACKAGE&gt; to debug.  Options are:</span><br><span class="line">      -w: wait for debugger when application starts</span><br><span class="line">      --persistent: retain this value</span><br><span class="line">  clear-debug-app</span><br><span class="line">      Clear the previously set-debug-app.</span><br><span class="line">  set-watch-heap &lt;PROCESS&gt; &lt;MEM-LIMIT&gt;</span><br><span class="line">      Start monitoring pss size of &lt;PROCESS&gt;, if it is at or</span><br><span class="line">      above &lt;HEAP-LIMIT&gt; then a heap dump is collected for the user to report.</span><br><span class="line">  clear-watch-heap</span><br><span class="line">      Clear the previously set-watch-heap.</span><br><span class="line">  bug-report [--progress | --telephony]</span><br><span class="line">      Request bug report generation; will launch a notification</span><br><span class="line">        when done to select where it should be delivered. Options are:</span><br><span class="line">     --progress: will launch a notification right away to show its progress.</span><br><span class="line">     --telephony: will dump only telephony sections.</span><br><span class="line">  force-stop [--user &lt;USER_ID&gt; | all | current] &lt;PACKAGE&gt;</span><br><span class="line">      Completely stop the given application package.</span><br><span class="line">  crash [--user &lt;USER_ID&gt;] &lt;PACKAGE|PID&gt;</span><br><span class="line">      Induce a VM crash in the specified package or process</span><br><span class="line">  kill [--user &lt;USER_ID&gt; | all | current] &lt;PACKAGE&gt;</span><br><span class="line">      Kill all background processes associated with the given application.</span><br><span class="line">  kill-all</span><br><span class="line">      Kill all processes that are safe to kill (cached, etc).</span><br><span class="line">  make-uid-idle [--user &lt;USER_ID&gt; | all | current] &lt;PACKAGE&gt;</span><br><span class="line">      If the given application's uid is in the background and waiting to</span><br><span class="line">      become idle (not allowing background services), do that now.</span><br><span class="line">  monitor [--gdb &lt;port&gt;]</span><br><span class="line">      Start monitoring for crashes or ANRs.</span><br><span class="line">      --gdb: start gdbserv on the given port at crash/ANR</span><br><span class="line">  watch-uids [--oom &lt;uid&gt;]</span><br><span class="line">      Start watching for and reporting uid state changes.</span><br><span class="line">      --oom: specify a uid for which to report detailed change messages.</span><br><span class="line">  hang [--allow-restart]</span><br><span class="line">      Hang the system.</span><br><span class="line">      --allow-restart: allow watchdog to perform normal system restart</span><br><span class="line">  restart</span><br><span class="line">      Restart the user-space system.</span><br><span class="line">  idle-maintenance</span><br><span class="line">      Perform idle maintenance now.</span><br><span class="line">  screen-compat [on|off] &lt;PACKAGE&gt;</span><br><span class="line">      Control screen compatibility mode of &lt;PACKAGE&gt;.</span><br><span class="line">  package-importance &lt;PACKAGE&gt;</span><br><span class="line">      Print current importance of &lt;PACKAGE&gt;.</span><br><span class="line">  to-uri [INTENT]</span><br><span class="line">      Print the given Intent specification as a URI.</span><br><span class="line">  to-intent-uri [INTENT]</span><br><span class="line">      Print the given Intent specification as an intent: URI.</span><br><span class="line">  to-app-uri [INTENT]</span><br><span class="line">      Print the given Intent specification as an android-app: URI.</span><br><span class="line">  switch-user &lt;USER_ID&gt;</span><br><span class="line">      Switch to put USER_ID in the foreground, starting</span><br><span class="line">      execution of that user if it is currently stopped.</span><br><span class="line">  get-current-user</span><br><span class="line">      Returns id of the current foreground user.</span><br><span class="line">  start-user &lt;USER_ID&gt;</span><br><span class="line">      Start USER_ID in background if it is currently stopped;</span><br><span class="line">      use switch-user if you want to start the user in foreground</span><br><span class="line">  unlock-user &lt;USER_ID&gt; [TOKEN_HEX]</span><br><span class="line">      Attempt to unlock the given user using the given authorization token.</span><br><span class="line">  stop-user [-w] [-f] &lt;USER_ID&gt;</span><br><span class="line">      Stop execution of USER_ID, not allowing it to run any</span><br><span class="line">      code until a later explicit start or switch to it.</span><br><span class="line">      -w: wait for stop-user to complete.</span><br><span class="line">      -f: force stop even if there are related users that cannot be stopped.</span><br><span class="line">  is-user-stopped &lt;USER_ID&gt;</span><br><span class="line">      Returns whether &lt;USER_ID&gt; has been stopped or not.</span><br><span class="line">  get-started-user-state &lt;USER_ID&gt;</span><br><span class="line">      Gets the current state of the given started user.</span><br><span class="line">  track-associations</span><br><span class="line">      Enable association tracking.</span><br><span class="line">  untrack-associations</span><br><span class="line">      Disable and clear association tracking.</span><br><span class="line">  get-uid-state &lt;UID&gt;</span><br><span class="line">      Gets the process state of an app given its &lt;UID&gt;.</span><br><span class="line">  attach-agent &lt;PROCESS&gt; &lt;FILE&gt;</span><br><span class="line">    Attach an agent to the specified &lt;PROCESS&gt;, which may be either a process name or a PID.</span><br><span class="line">  get-config [--days N] [--device] [--proto]</span><br><span class="line">      Retrieve the configuration and any recent configurations of the device.</span><br><span class="line">      --days: also return last N days of configurations that have been seen.</span><br><span class="line">      --device: also output global device configuration info.</span><br><span class="line">      --proto: return result as a proto; does not include --days info.</span><br><span class="line">  supports-multiwindow</span><br><span class="line">      Returns true if the device supports multiwindow.</span><br><span class="line">  supports-split-screen-multi-window</span><br><span class="line">      Returns true if the device supports split screen multiwindow.</span><br><span class="line">  suppress-resize-config-changes &lt;true|false&gt;</span><br><span class="line">      Suppresses configuration changes due to user resizing an activity/task.</span><br><span class="line">  set-inactive [--user &lt;USER_ID&gt;] &lt;PACKAGE&gt; true|false</span><br><span class="line">      Sets the inactive state of an app.</span><br><span class="line">  get-inactive [--user &lt;USER_ID&gt;] &lt;PACKAGE&gt;</span><br><span class="line">      Returns the inactive state of an app.</span><br><span class="line">  set-standby-bucket [--user &lt;USER_ID&gt;] &lt;PACKAGE&gt; active|working_set|frequent|rare</span><br><span class="line">      Puts an app in the standby bucket.</span><br><span class="line">  get-standby-bucket [--user &lt;USER_ID&gt;] &lt;PACKAGE&gt;</span><br><span class="line">      Returns the standby bucket of an app.</span><br><span class="line">  send-trim-memory [--user &lt;USER_ID&gt;] &lt;PROCESS&gt;</span><br><span class="line">          [HIDDEN|RUNNING_MODERATE|BACKGROUND|RUNNING_LOW|MODERATE|RUNNING_CRITICAL|COMPLETE]</span><br><span class="line">      Send a memory trim event to a &lt;PROCESS&gt;.  May also supply a raw trim int level.</span><br><span class="line">  display [COMMAND] [...]: sub-commands for operating on displays.</span><br><span class="line">       move-stack &lt;STACK_ID&gt; &lt;DISPLAY_ID&gt;</span><br><span class="line">           Move &lt;STACK_ID&gt; from its current display to &lt;DISPLAY_ID&gt;.</span><br><span class="line">  stack [COMMAND] [...]: sub-commands for operating on activity stacks.</span><br><span class="line">       start &lt;DISPLAY_ID&gt; &lt;INTENT&gt;</span><br><span class="line">           Start a new activity on &lt;DISPLAY_ID&gt; using &lt;INTENT&gt;</span><br><span class="line">       move-task &lt;TASK_ID&gt; &lt;STACK_ID&gt; [true|false]</span><br><span class="line">           Move &lt;TASK_ID&gt; from its current stack to the top (true) or</span><br><span class="line">           bottom (false) of &lt;STACK_ID&gt;.</span><br><span class="line">       resize &lt;STACK_ID&gt; &lt;LEFT,TOP,RIGHT,BOTTOM&gt;</span><br><span class="line">           Change &lt;STACK_ID&gt; size and position to &lt;LEFT,TOP,RIGHT,BOTTOM&gt;.</span><br><span class="line">       resize-animated &lt;STACK_ID&gt; &lt;LEFT,TOP,RIGHT,BOTTOM&gt;</span><br><span class="line">           Same as resize, but allow animation.</span><br><span class="line">       resize-docked-stack &lt;LEFT,TOP,RIGHT,BOTTOM&gt; [&lt;TASK_LEFT,TASK_TOP,TASK_RIGHT,TASK_BOTTOM&gt;]</span><br><span class="line">           Change docked stack to &lt;LEFT,TOP,RIGHT,BOTTOM&gt;</span><br><span class="line">           and supplying temporary different task bounds indicated by</span><br><span class="line">           &lt;TASK_LEFT,TOP,RIGHT,BOTTOM&gt;</span><br><span class="line">       move-top-activity-to-pinned-stack: &lt;STACK_ID&gt; &lt;LEFT,TOP,RIGHT,BOTTOM&gt;</span><br><span class="line">           Moves the top activity from</span><br><span class="line">           &lt;STACK_ID&gt; to the pinned stack using &lt;LEFT,TOP,RIGHT,BOTTOM&gt; for the</span><br><span class="line">           bounds of the pinned stack.</span><br><span class="line">       positiontask &lt;TASK_ID&gt; &lt;STACK_ID&gt; &lt;POSITION&gt;</span><br><span class="line">           Place &lt;TASK_ID&gt; in &lt;STACK_ID&gt; at &lt;POSITION&gt;</span><br><span class="line">       list</span><br><span class="line">           List all of the activity stacks and their sizes.</span><br><span class="line">       info &lt;WINDOWING_MODE&gt; &lt;ACTIVITY_TYPE&gt;</span><br><span class="line">           Display the information about activity stack in &lt;WINDOWING_MODE&gt; and &lt;ACTIVITY_TYPE&gt;.</span><br><span class="line">       remove &lt;STACK_ID&gt;</span><br><span class="line">           Remove stack &lt;STACK_ID&gt;.</span><br><span class="line">  task [COMMAND] [...]: sub-commands for operating on activity tasks.</span><br><span class="line">       lock &lt;TASK_ID&gt;</span><br><span class="line">           Bring &lt;TASK_ID&gt; to the front and don't allow other tasks to run.</span><br><span class="line">       lock stop</span><br><span class="line">           End the current task lock.</span><br><span class="line">       resizeable &lt;TASK_ID&gt; [0|1|2|3]</span><br><span class="line">           Change resizeable mode of &lt;TASK_ID&gt; to one of the following:</span><br><span class="line">           0: unresizeable</span><br><span class="line">           1: crop_windows</span><br><span class="line">           2: resizeable</span><br><span class="line">           3: resizeable_and_pipable</span><br><span class="line">       resize &lt;TASK_ID&gt; &lt;LEFT,TOP,RIGHT,BOTTOM&gt;</span><br><span class="line">           Makes sure &lt;TASK_ID&gt; is in a stack with the specified bounds.</span><br><span class="line">           Forces the task to be resizeable and creates a stack if no existing stack</span><br><span class="line">           has the specified bounds.</span><br><span class="line">  update-appinfo &lt;USER_ID&gt; &lt;PACKAGE_NAME&gt; [&lt;PACKAGE_NAME&gt;...]</span><br><span class="line">      Update the ApplicationInfo objects of the listed packages for &lt;USER_ID&gt;</span><br><span class="line">      without restarting any processes.</span><br><span class="line">  write</span><br><span class="line">      Write all pending state to storage.</span><br><span class="line"></span><br><span class="line">&lt;INTENT&gt; specifications include these flags and arguments:</span><br><span class="line">    [-a &lt;ACTION&gt;] [-d &lt;DATA_URI&gt;] [-t &lt;MIME_TYPE&gt;]</span><br><span class="line">    [-c &lt;CATEGORY&gt; [-c &lt;CATEGORY&gt;] ...]</span><br><span class="line">    [-n &lt;COMPONENT_NAME&gt;]</span><br><span class="line">    [-e|--es &lt;EXTRA_KEY&gt; &lt;EXTRA_STRING_VALUE&gt; ...]</span><br><span class="line">    [--esn &lt;EXTRA_KEY&gt; ...]</span><br><span class="line">    [--ez &lt;EXTRA_KEY&gt; &lt;EXTRA_BOOLEAN_VALUE&gt; ...]</span><br><span class="line">    [--ei &lt;EXTRA_KEY&gt; &lt;EXTRA_INT_VALUE&gt; ...]</span><br><span class="line">    [--el &lt;EXTRA_KEY&gt; &lt;EXTRA_LONG_VALUE&gt; ...]</span><br><span class="line">    [--ef &lt;EXTRA_KEY&gt; &lt;EXTRA_FLOAT_VALUE&gt; ...]</span><br><span class="line">    [--eu &lt;EXTRA_KEY&gt; &lt;EXTRA_URI_VALUE&gt; ...]</span><br><span class="line">    [--ecn &lt;EXTRA_KEY&gt; &lt;EXTRA_COMPONENT_NAME_VALUE&gt;]</span><br><span class="line">    [--eia &lt;EXTRA_KEY&gt; &lt;EXTRA_INT_VALUE&gt;[,&lt;EXTRA_INT_VALUE...]]</span><br><span class="line">        (mutiple extras passed as Integer[])</span><br><span class="line">    [--eial &lt;EXTRA_KEY&gt; &lt;EXTRA_INT_VALUE&gt;[,&lt;EXTRA_INT_VALUE...]]</span><br><span class="line">        (mutiple extras passed as List&lt;Integer&gt;)</span><br><span class="line">    [--ela &lt;EXTRA_KEY&gt; &lt;EXTRA_LONG_VALUE&gt;[,&lt;EXTRA_LONG_VALUE...]]</span><br><span class="line">        (mutiple extras passed as Long[])</span><br><span class="line">    [--elal &lt;EXTRA_KEY&gt; &lt;EXTRA_LONG_VALUE&gt;[,&lt;EXTRA_LONG_VALUE...]]</span><br><span class="line">        (mutiple extras passed as List&lt;Long&gt;)</span><br><span class="line">    [--efa &lt;EXTRA_KEY&gt; &lt;EXTRA_FLOAT_VALUE&gt;[,&lt;EXTRA_FLOAT_VALUE...]]</span><br><span class="line">        (mutiple extras passed as Float[])</span><br><span class="line">    [--efal &lt;EXTRA_KEY&gt; &lt;EXTRA_FLOAT_VALUE&gt;[,&lt;EXTRA_FLOAT_VALUE...]]</span><br><span class="line">        (mutiple extras passed as List&lt;Float&gt;)</span><br><span class="line">    [--esa &lt;EXTRA_KEY&gt; &lt;EXTRA_STRING_VALUE&gt;[,&lt;EXTRA_STRING_VALUE...]]</span><br><span class="line">        (mutiple extras passed as String[]; to embed a comma into a string,</span><br><span class="line">         escape it using "\,")</span><br><span class="line">    [--esal &lt;EXTRA_KEY&gt; &lt;EXTRA_STRING_VALUE&gt;[,&lt;EXTRA_STRING_VALUE...]]</span><br><span class="line">        (mutiple extras passed as List&lt;String&gt;; to embed a comma into a string,</span><br><span class="line">         escape it using "\,")</span><br><span class="line">    [-f &lt;FLAG&gt;]</span><br><span class="line">    [--grant-read-uri-permission] [--grant-write-uri-permission]</span><br><span class="line">    [--grant-persistable-uri-permission] [--grant-prefix-uri-permission]</span><br><span class="line">    [--debug-log-resolution] [--exclude-stopped-packages]</span><br><span class="line">    [--include-stopped-packages]</span><br><span class="line">    [--activity-brought-to-front] [--activity-clear-top]</span><br><span class="line">    [--activity-clear-when-task-reset] [--activity-exclude-from-recents]</span><br><span class="line">    [--activity-launched-from-history] [--activity-multiple-task]</span><br><span class="line">    [--activity-no-animation] [--activity-no-history]</span><br><span class="line">    [--activity-no-user-action] [--activity-previous-is-top]</span><br><span class="line">    [--activity-reorder-to-front] [--activity-reset-task-if-needed]</span><br><span class="line">    [--activity-single-top] [--activity-clear-task]</span><br><span class="line">    [--activity-task-on-home] [--activity-match-external]</span><br><span class="line">    [--receiver-registered-only] [--receiver-replace-pending]</span><br><span class="line">    [--receiver-foreground] [--receiver-no-abort]</span><br><span class="line">    [--receiver-include-background]</span><br><span class="line">    [--selector]</span><br><span class="line">    [&lt;URI&gt; | &lt;PACKAGE&gt; | &lt;COMPONENT&gt;]</span><br></pre></td></tr></table></figure>
+<p>命令列表</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>功能</th>
+<th>实现方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>am start [options]</td>
+<td>启动Activity</td>
+<td>startActivityAsUser</td>
+</tr>
+<tr>
+<td>am startservice</td>
+<td>启动Service</td>
+<td>startService</td>
+</tr>
+<tr>
+<td>am stopservice</td>
+<td>停止Service</td>
+<td>stopService</td>
+</tr>
+<tr>
+<td>am broadcast</td>
+<td>发送广播</td>
+<td>broadcastIntent</td>
+</tr>
+<tr>
+<td>am restart</td>
+<td>重启</td>
+<td>restart</td>
+</tr>
+<tr>
+<td>am dumpheap &lt;pid&gt; &lt;file&gt;</td>
+<td>进程pid的堆信息输出到file</td>
+<td>dumpheap</td>
+</tr>
+<tr>
+<td>am send-trim-memory &lt;pid&gt; &lt;level&gt;</td>
+<td>收紧进程的内存</td>
+<td>setProcessMemoryTrimLevel</td>
+</tr>
+<tr>
+<td>am kill &lt;PACKAGE&gt;</td>
+<td>杀指定后台进程</td>
+<td>killBackgroundProcesses</td>
+</tr>
+<tr>
+<td>am kill-all</td>
+<td>杀所有后台进程</td>
+<td>killAllBackgroundProcesses</td>
+</tr>
+<tr>
+<td>am force-stop &lt;PACKAGE&gt;</td>
+<td>强杀进程</td>
+<td>forceStopPackage</td>
+</tr>
+<tr>
+<td>am hang</td>
+<td>系统卡住</td>
+<td>hang</td>
+</tr>
+<tr>
+<td>am monitor</td>
+<td>监控</td>
+<td>MyActivityController.run</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>原理分析：am命令实的实现方式在Am.java，最终几乎都是调用ActivityManagerService相应的方法来完成的，am monitor除外。比如前面概述中介绍的命令am start -a android.intent.action.VIEW -d <a href="https://amberweather.com，" target="_blank" rel="noopener">https://amberweather.com，</a> 启动Acitivty最终调用的是ActivityManagerService类的startActivityAsUser()方法来完成的。再比如am kill-all命令，最终的实现工作是由ActivityManagerService的killBackgroundProcesses()方法完成的。</strong></p>
+<h1 id="启动Activity"><a href="#启动Activity" class="headerlink" title="启动Activity"></a>启动Activity</h1><p>主要是启动Activity命令am start [options] <INTENT>使用options参数，接下来列举Activity命令的[options]参数：</p>
+<figure class="highlight shell"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">-D:开启debug模式</span><br><span class="line">-W：等待启动完成</span><br><span class="line">--start-profiler&lt;FILE&gt;：将profiler中的结果输出到指定文件中</span><br><span class="line">-P：和--start-profiler一样，区别在于，在app进入idle状态时profiler结束</span><br><span class="line">-R &lt;Count&gt;： 重复启动Activity，但每次重复启动都会关闭掉最上面的Activity</span><br><span class="line">-S:关闭Activity所属的App进程后再启动Activity</span><br><span class="line">--opengl-trace:开启OpenGL tracing</span><br><span class="line">--user &lt;USER_ID&gt; ：使用指定的用户来启动activity，如果不输入，则使用当前用户执行</span><br></pre></td></tr></table></figure>
+<p>启动Activity的实现原理： 存在-W参数则调用startActivityAndWait()方法来运行，否则startActivityAsUser()。</p>
+<h1 id="收紧内存"><a href="#收紧内存" class="headerlink" title="收紧内存"></a>收紧内存</h1><p>例如： 向pid=12345的进程，发出level=RUNNING_LOW的收紧内存命令</p>
+<figure class="highlight shell"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">am send-trim-memory 12345 RUNNING_LOW</span><br></pre></td></tr></table></figure>
+<p>level取值范围为： <code>HIDDEN</code>、<code>RUNNING_MODERATE</code>、<code>BACKGROUND</code>、<code>RUNNING_LOW</code>、<code>MODERATE</code>、<code>RUNNING_CRITICAL</code>、<code>COMPLETE</code></p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>如果对你有帮助，欢迎赞赏。</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpeg" alt="William 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="William 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>William
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://william-hl1991.github.io/2019/07/10/AM%E5%91%BD%E4%BB%A4/" title="AM命令">https://william-hl1991.github.io/2019/07/10/AM命令/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/Android/" rel="tag"><i class="fa fa-tag"></i> Android</a>
+              <a href="/tags/%E6%B5%8B%E8%AF%95/" rel="tag"><i class="fa fa-tag"></i> 测试</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/10/26/sonarqube%E5%AE%89%E8%A3%85/" rel="prev" title="sonarqube安装">
+      <i class="fa fa-chevron-left"></i> sonarqube安装
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/03/22/Xcode-Instruments-%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%96%B9%E5%BC%8F%E8%B0%83%E7%94%A8/" rel="next" title="Xcode Instruments 命令行方式调用">
+      Xcode Instruments 命令行方式调用 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简单介绍"><span class="nav-text">简单介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#命令"><span class="nav-text">命令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#启动Activity"><span class="nav-text">启动Activity</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#收紧内存"><span class="nav-text">收紧内存</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="William"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">William</p>
+  <div class="site-description" itemprop="description">工作总结与记录</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/William-HL1991" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;William-HL1991" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://william-hl1991.github.io/" title="https:&#x2F;&#x2F;william-hl1991.github.io">博客</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">William</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    <span title="站点总字数">60k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">55 分钟</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

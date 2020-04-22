@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"william-hl1991.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":"tue","color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideDownIn"}}};
+  </script>
+
+  <meta name="description" content="Android 中的线程和线程池我们知道线程是CPU调度的最小单位。在Android中主线程是不能够做耗时操作的，子线程是不能够更新UI的。在Android中，除了Thread外，扮演线程的角色有很多，如AsyncTask,IntentService和HandlerThread等等。良好的线程使用习惯有助于减少 app 出现崩溃和性能开销的风险，接下来介绍一下线程池的使用。 线程池的好处不知道大家">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android 中的线程和线程池">
+<meta property="og:url" content="https://william-hl1991.github.io/2020/01/10/Android-%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%E6%B1%A0/index.html">
+<meta property="og:site_name" content="William">
+<meta property="og:description" content="Android 中的线程和线程池我们知道线程是CPU调度的最小单位。在Android中主线程是不能够做耗时操作的，子线程是不能够更新UI的。在Android中，除了Thread外，扮演线程的角色有很多，如AsyncTask,IntentService和HandlerThread等等。良好的线程使用习惯有助于减少 app 出现崩溃和性能开销的风险，接下来介绍一下线程池的使用。 线程池的好处不知道大家">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-01-10T09:15:01.000Z">
+<meta property="article:modified_time" content="2020-04-22T09:57:03.916Z">
+<meta property="article:author" content="William">
+<meta property="article:tag" content="android">
+<meta property="article:tag" content="移动端开发">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://william-hl1991.github.io/2020/01/10/Android-%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Android 中的线程和线程池 | William</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="William" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">William</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">不管走了多远都不要忘记为什么出发</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">12</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">4</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">8</span></a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://william-hl1991.github.io/2020/01/10/Android-%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%E6%B1%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="William">
+      <meta itemprop="description" content="工作总结与记录">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="William">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android 中的线程和线程池
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-10 17:15:01" itemprop="dateCreated datePublished" datetime="2020-01-10T17:15:01+08:00">2020-01-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-22 17:57:03" itemprop="dateModified" datetime="2020-04-22T17:57:03+08:00">2020-04-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Android-中的线程和线程池"><a href="#Android-中的线程和线程池" class="headerlink" title="Android 中的线程和线程池"></a>Android 中的线程和线程池</h1><p>我们知道线程是CPU调度的最小单位。在Android中主线程是不能够做耗时操作的，子线程是不能够更新UI的。在Android中，除了Thread外，扮演线程的角色有很多，如AsyncTask,IntentService和HandlerThread等等。良好的线程使用习惯有助于减少 app 出现崩溃和性能开销的风险，接下来介绍一下线程池的使用。</p>
+<h2 id="线程池的好处"><a href="#线程池的好处" class="headerlink" title="线程池的好处"></a>线程池的好处</h2><p>不知道大家有没有遇到过这种情况。我们在写项目，遇到耗时操作的时候，怎么办呢，是不是<code>new Thread().start</code>，那这样的话，整个项目中得<code>new</code>多少个<code>Thread</code>。这种明显是很浪费性能。那么有没有一种可以方法对线程进行复用呢？答案就是线程池。</p>
+<p>先说一下线程池的好处：</p>
+<ul>
+<li>重用线程池中的线程，避免因为线程的创建和销毁带来的性能开销。</li>
+<li>能有效的控制线程池中的线程并发数，避免大量线程之间因为互相抢占资源而导致的阻塞现象。</li>
+<li>能够对线程进行简单的管理，并提供定时执行以及指定间隔循环执行等功能。<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="ThreadPoolExecutor"><a href="#ThreadPoolExecutor" class="headerlink" title="ThreadPoolExecutor"></a><code>ThreadPoolExecutor</code></h2><p>Android中的线程池概念是来源于java中<code>Executor</code>，<code>Executor</code>是一个空的接口，真正的线程池实现<code>ThreadPoolExecutor</code>。</p>
+<figure class="highlight java"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                              <span class="keyword">int</span> maximumPoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                              <span class="keyword">long</span> keepAliveTime,</span></span></span><br><span class="line"><span class="function"><span class="params">                              TimeUnit unit,</span></span></span><br><span class="line"><span class="function"><span class="params">                              BlockingQueue&lt;Runnable&gt; workQueue,</span></span></span><br><span class="line"><span class="function"><span class="params">                              ThreadFactory threadFactory)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, defaultHandler);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>简单介绍一下ThreadPoolExcutor各个参数的含义：</p>
+<ul>
+<li><p><code>corePoolSize</code>：线程池的核心线程数，默认情况下，核心线程会在线程池中一直存活，即使他们处于闲置状态。当我们把<code>ThreadPoolExecutor</code>中的<code>allowCoreThreadTimeOut</code>属性设置为<code>true</code>，那么闲置的核心线程在等待新任务的时候，如果时间超过<code>keepAliveTime</code>所设置的时间，核心线程将会被回收。</p>
+<figure class="highlight java"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">long</span> keepAliveTime;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">boolean</span> allowCoreThreadTimeOut;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>maximumPoolSize</code>：设置最大线程池能够容纳的最大线程数，当线程池中的线程达到这个数以后，新任务将会被阻塞。</p>
+</li>
+<li><p><code>keepAliveTime</code>：非核心线程数闲置的时间。</p>
+</li>
+<li><p><code>unit</code>：指定keepAliveTime参数的时间单位。</p>
+</li>
+<li><p><code>workQueue</code>：线程池中的任务队列。</p>
+</li>
+<li><p><code>threadFactory</code>：线程工厂，为线程池提供创建新线程的功能。</p>
+</li>
+<li><p><code>handler</code>：该<code>handler</code>的类型为<code>RejectedExecutionHandler</code>。这个参数不常用，它的作用是当线程池无法执行新任务时，会调用<code>handler</code>的<code>rejectedExecution(Runnable r, ThreadPoolExecutor e)</code>方法来抛出异常。无法执行的原因可能是由于队列满或者任务无法成功执行等。</p>
+</li>
+</ul>
+<p>ThreadPoolExecutor执行任务大致遵循以下规则：</p>
+<ol>
+<li>如果线程池中的线程数量未达到核心线程的数量，会直接启动一个核心线程来执行任务。</li>
+<li>如果线程池中的线程数量已经达到或者超过核心线程的数量，那么任务会被插入到任务队列中排队等待执行。</li>
+<li>如果第2步中无法插入新任务，说明任务队列已满，如果未达到规定的最大线程数量，则启动一个非核心线程来执行任务。</li>
+<li>如果第3步中线程数量超过规定的最大值，则拒绝任务并使用<code>RejectedExecutionHandler</code>的<code>rejectedExecution(Runnable r, ThreadPoolExecutor e)</code>方法来通知调用者。</li>
+</ol>
+<h2 id="线程池的分类"><a href="#线程池的分类" class="headerlink" title="线程池的分类"></a>线程池的分类</h2><p>Android中常见的线程池有四种，<code>FixedThreadPool</code>、<code>CachedThreadPool</code>、<code>ScheduledThreadPool</code>、<code>SingleThreadExecutor</code>。</p>
+<h3 id="FixedThreadPool（Fixed：固定的，不变的）"><a href="#FixedThreadPool（Fixed：固定的，不变的）" class="headerlink" title="FixedThreadPool（Fixed：固定的，不变的）"></a><code>FixedThreadPool</code>（Fixed：固定的，不变的）</h3><p><code>FixedThreadPool</code>线程池是通过<code>Executors</code>的<code>new FixedThreadPool</code>方法来创建。它的特点是该线程池中的线程数量是固定的。即使线程处于闲置的状态，它们也不会被回收，除非线程池被关闭。当所有的线程都处于活跃状态的时候，新任务就处于队列中等待线程来处理。注意，<code>FixedThreadPool</code>只有核心线程，没有非核心线程。总结如下：</p>
+<ul>
+<li>线程数量固定且都是核心线程：核心线程数量和最大线程数量都是nThreads；</li>
+<li>都是核心线程且不会被回收，快速相应外界请求；</li>
+<li>没有超时机制，任务队列也没有大小限制；</li>
+<li>新任务使用核心线程处理，如果没有空闲的核心线程，则排队等待执行。</li>
+</ul>
+<figure class="highlight java"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newFixedThreadPool</span><span class="params">(<span class="keyword">int</span> nThreads, ThreadFactory threadFactory)</span> </span>&#123;</span><br><span class="line">         <span class="keyword">return</span> <span class="keyword">new</span> ThreadPoolExecutor(nThreads, nThreads,</span><br><span class="line">                                       <span class="number">0L</span>, TimeUnit.MILLISECONDS,</span><br><span class="line">                                       <span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;(),</span><br><span class="line">                                       threadFactory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="CachedThreadPool（Cached：缓存）"><a href="#CachedThreadPool（Cached：缓存）" class="headerlink" title="CachedThreadPool（Cached：缓存）"></a><code>CachedThreadPool</code>（Cached：缓存）</h3><p><code>CachedThreadPool</code>线程池是通过<code>Executors</code>的<code>new CachedThreadPool</code>进行创建的。它是一种线程数目不固定的线程池，它没有核心线程，只有非核心线程，当线程池中的线程都处于活跃状态，就会创建新的线程来处理新的任务。否则就会利用闲置的线程来处理新的任务。线程池中的线程都有超时机制，这个超时机制时长是60s，超过这个时间，闲置的线程就会被回收。这种线程池适合处理大量并且耗时较少的任务。这里得说一下，<code>CachedThreadPool</code>的任务队列，基本都是空的。总结如下:</p>
+<ul>
+<li>线程数量不定，只有非核心线程，最大线程数任意大：传入核心线程数量的参数为0，最大线程数为<code>Integer.MAX_VALUE</code>；</li>
+<li>有新任务时使用空闲线程执行，没有空闲线程则创建新的线程来处理。</li>
+<li>该线程池的每个空闲线程都有超时机制，时常为60s（参数：60L, <code>TimeUnit.SECONDS</code>），空闲超过60s则回收空闲线程。</li>
+<li>适合执行大量的耗时较少的任务，当所有线程闲置超过60s都会被停止，所以这时几乎不占用系统资源。</li>
+</ul>
+<figure class="highlight java"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newCachedThreadPool</span><span class="params">()</span> </span>&#123;</span><br><span class="line">         <span class="keyword">return</span> <span class="keyword">new</span> ThreadPoolExecutor(<span class="number">0</span>, Integer.MAX_VALUE,</span><br><span class="line">                                       <span class="number">60L</span>, TimeUnit.SECONDS,</span><br><span class="line">                                       <span class="keyword">new</span> SynchronousQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ScheduledThreadPool（Scheduled：预定的、排定的）"><a href="#ScheduledThreadPool（Scheduled：预定的、排定的）" class="headerlink" title="ScheduledThreadPool（Scheduled：预定的、排定的）"></a><code>ScheduledThreadPool</code>（Scheduled：预定的、排定的）</h3><p><code>ScheduledThreadPool</code>线程池是通过<code>Executors</code>的<code>new ScheduledThreadPool</code>进行创建的，它的核心线程是固定的，但是非核心线程数是不固定的，并且当非核心线程一处于空闲状态，就立即被回收。这种线程适合执行定时任务和具有固定周期的重复任务。总结如下：</p>
+<ul>
+<li>核心线程数量固定，非核心线程数量无限制；</li>
+<li>非核心线程闲置超过10s会被回收；</li>
+<li>主要用于执行定时任务和具有固定周期的重复任务；</li>
+<li>四个里面唯一一个有延时执行和周期重复执行的功能：创建时<br><code>ScheduledThreadPoolExecutor(corePoolSize)</code>返回的是<code>new ScheduledThreadPoolExecutor</code>对象，<code>ScheduledThreadPoolExecutor</code>是<code>ThreadPoolExecutor</code>的子类，<code>DelayedWorkQueue</code>是<code>ScheduledThreadPoolExecutor</code>的一个静态内部类，主要用于处理任务队列延迟的工作。</li>
+</ul>
+<figure class="highlight java"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ScheduledExecutorService <span class="title">newScheduledThreadPool</span><span class="params">(<span class="keyword">int</span> corePoolSize)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> ScheduledThreadPoolExecutor(corePoolSize);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 默认闲置超时回收时常</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> DEFAULT_KEEPALIVE_MILLIS = <span class="number">10L</span>;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ScheduledThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">super</span>(corePoolSize, Integer.MAX_VALUE, DEFAULT_KEEPALIVE_MILLIS, MILLISECONDS, <span class="keyword">new</span> DelayedWorkQueue());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="SingleThreadExecutor（单线程线程池）"><a href="#SingleThreadExecutor（单线程线程池）" class="headerlink" title="SingleThreadExecutor（单线程线程池）"></a><code>SingleThreadExecutor</code>（单线程线程池）</h3><p><code>SingleThreadExecutor</code>线程池是通过<code>Executors</code>的<code>new SingleThreadExecutor</code>方法来创建的，这类线程池中只有一个核心线程，也没有非核心线程，这就确保了所有任务能够在同一个线程并且按照顺序来执行，这样就不需要考虑线程同步的问题。总结如下：</p>
+<ul>
+<li>只有一个核心线程，所有任务在同一个线程按顺序执行。</li>
+<li>所有的外界任务统一到一个线程中，所以不需要处理线程同步的问题。</li>
+</ul>
+<figure class="highlight java"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newSingleThreadExecutor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> FinalizableDelegatedExecutorService(<span class="keyword">new</span> ThreadPoolExecutor(<span class="number">1</span>, <span class="number">1</span>,</span><br><span class="line">												   <span class="number">0L</span>, TimeUnit.MILLISECONDS,</span><br><span class="line">												 <span class="keyword">new</span> LinkedBlockingQueue&lt;Runable&gt;()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Android线程池简单使用"><a href="#Android线程池简单使用" class="headerlink" title="Android线程池简单使用"></a>Android线程池简单使用</h2><h3 id="上面所说的四种常用线程池的实例化："><a href="#上面所说的四种常用线程池的实例化：" class="headerlink" title="上面所说的四种常用线程池的实例化："></a>上面所说的四种常用线程池的实例化：</h3><figure class="highlight java"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建一个Runnable对象</span></span><br><span class="line">Runnable runnable = <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">// do something</span></span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 四种线程池执行Runnable对象</span></span><br><span class="line">ExecutorService fixedThreadPool = Executors.newFixedThreadPool(<span class="number">1</span>);</span><br><span class="line">fixedThreadPool.execute(runnable);</span><br><span class="line">    </span><br><span class="line">ExecutorService cachedThreadPool = Executors.newCachedThreadPool();</span><br><span class="line">cachedThreadPool.execute(runnable);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注意这里创建的是ScheduledExecutorService对象，ScheduledExecutorService是ExecutorService的子类</span></span><br><span class="line">ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(<span class="number">4</span>);</span><br><span class="line"><span class="comment">// 1000ms后执行runnable</span></span><br><span class="line">scheduledThreadPool.schedule(runnable,<span class="number">1000</span>,TimeUnit.MILLISECONDS);</span><br><span class="line"><span class="comment">// 1000ms后，每3000ms执行一次runnable</span></span><br><span class="line">scheduledThreadPool.scheduleAtFixedRate(runnable,<span class="number">1000</span>,<span class="number">2000</span>,TimeUnit.MILLISECONDS);</span><br><span class="line">isRunning = <span class="keyword">true</span>;</span><br><span class="line">    </span><br><span class="line">ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();</span><br><span class="line">singleThreadExecutor.execute(runnable);</span><br></pre></td></tr></table></figure>
+<h3 id="简单使用demo"><a href="#简单使用demo" class="headerlink" title="简单使用demo"></a>简单使用demo</h3><p>添加线程池开始执行和<code>ScheduledThreadPool</code>停止执行的两个按钮点击事件。</p>
+<figure class="highlight java"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">findViewById(R.id.btn_start).setOnClickListener(<span class="keyword">new</span> View.OnClickListener() &#123;</span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View v)</span> </span>&#123;</span><br><span class="line">		count = <span class="number">0</span>;</span><br><span class="line">		mStatueText.setText(<span class="string">"线程开始执行，次数："</span>+ count);</span><br><span class="line">		startThreadPool();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;);</span><br><span class="line">findViewById(R.id.btn_stop).setOnClickListener(<span class="keyword">new</span> View.OnClickListener() &#123;</span><br><span class="line">		<span class="meta">@Override</span></span><br><span class="line">		<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View v)</span> </span>&#123;</span><br><span class="line">			<span class="keyword">if</span>(<span class="keyword">null</span> != scheduledThreadPool &amp;&amp; isRunning)&#123;</span><br><span class="line">			scheduledThreadPool.shutdown();</span><br><span class="line">				mStatueText.setText(<span class="string">"scheduledThreadPool线程停止，当前次数："</span>+ count);</span><br><span class="line">				isRunning = <span class="keyword">false</span>;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><code>startThreadPool();</code>方法里Runnable每执行一次增加一次count并打到TextView上：</p>
+<figure class="highlight java"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Runnable runnable = <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		count++;</span><br><span class="line">		runOnUiThread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">			<span class="meta">@Override</span></span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">				mStatueText.setText(<span class="string">"线程执行完毕，次数："</span>+ count);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>接着让所有的线程池执行这个Runnable对象，最后的结果是变量count的值从0直接到了3，然后又到5最后无限增长。<br>原因是除ScheduledThreadPool对象外的三个线程池很快执行了任务，ScheduledThreadPool对象的执行了两次任务，两个都延时1000ms。最后循环执行的任务一直在增加count的值。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>如果对你有帮助，欢迎赞赏。</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpeg" alt="William 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="William 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>William
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://william-hl1991.github.io/2020/01/10/Android-%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%E6%B1%A0/" title="Android 中的线程和线程池">https://william-hl1991.github.io/2020/01/10/Android-中的线程和线程池/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/android/" rel="tag"><i class="fa fa-tag"></i> android</a>
+              <a href="/tags/%E7%A7%BB%E5%8A%A8%E7%AB%AF%E5%BC%80%E5%8F%91/" rel="tag"><i class="fa fa-tag"></i> 移动端开发</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2019/11/14/%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E7%AB%AF%E5%8F%A3%E6%9F%A5%E8%AF%A2%E5%90%AF%E5%8A%A8%E6%96%87%E4%BB%B6/" rel="next" title="如何通过端口查询启动文件">
+      如何通过端口查询启动文件 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Android-中的线程和线程池"><span class="nav-text">Android 中的线程和线程池</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#线程池的好处"><span class="nav-text">线程池的好处</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadPoolExecutor"><span class="nav-text">ThreadPoolExecutor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程池的分类"><span class="nav-text">线程池的分类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#FixedThreadPool（Fixed：固定的，不变的）"><span class="nav-text">FixedThreadPool（Fixed：固定的，不变的）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CachedThreadPool（Cached：缓存）"><span class="nav-text">CachedThreadPool（Cached：缓存）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ScheduledThreadPool（Scheduled：预定的、排定的）"><span class="nav-text">ScheduledThreadPool（Scheduled：预定的、排定的）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SingleThreadExecutor（单线程线程池）"><span class="nav-text">SingleThreadExecutor（单线程线程池）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Android线程池简单使用"><span class="nav-text">Android线程池简单使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#上面所说的四种常用线程池的实例化："><span class="nav-text">上面所说的四种常用线程池的实例化：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简单使用demo"><span class="nav-text">简单使用demo</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="William"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">William</p>
+  <div class="site-description" itemprop="description">工作总结与记录</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/William-HL1991" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;William-HL1991" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://william-hl1991.github.io/" title="https:&#x2F;&#x2F;william-hl1991.github.io">博客</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">William</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+      <span class="post-meta-item-text">站点总字数：</span>
+    <span title="站点总字数">60k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">55 分钟</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
