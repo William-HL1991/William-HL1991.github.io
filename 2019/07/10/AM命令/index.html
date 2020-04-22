@@ -20,15 +20,15 @@
     var CONFIG = {"hostname":"william-hl1991.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":"tue","color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideDownIn"}}};
   </script>
 
-  <meta name="description" content="简单介绍am指令是 activity manager的缩写，可以启动Service、Broadcast，杀进程，监控等功能，这些功能都非常便捷调试程序。 可以通过adb shell 进入Android 的Linux命令界面，输入am -help查看详细命令，先介绍几个简单用法. &amp;#123; .theme-peacock &amp;#125;12345678&#x2F;&#x2F;使用Action方式打开系统设置-输入法设置">
+  <meta name="description" content="简单介绍am指令是 activity manager的缩写，可以启动Service、Broadcast，杀进程，监控等功能，这些功能都非常便捷调试程序。 可以通过adb shell 进入Android 的Linux命令界面，输入am -help查看详细命令，先介绍几个简单用法. 12345678&#x2F;&#x2F;使用Action方式打开系统设置-输入法设置am start -a android.settings">
 <meta property="og:type" content="article">
 <meta property="og:title" content="AM命令">
 <meta property="og:url" content="https://william-hl1991.github.io/2019/07/10/AM%E5%91%BD%E4%BB%A4/index.html">
 <meta property="og:site_name" content="William">
-<meta property="og:description" content="简单介绍am指令是 activity manager的缩写，可以启动Service、Broadcast，杀进程，监控等功能，这些功能都非常便捷调试程序。 可以通过adb shell 进入Android 的Linux命令界面，输入am -help查看详细命令，先介绍几个简单用法. &amp;#123; .theme-peacock &amp;#125;12345678&#x2F;&#x2F;使用Action方式打开系统设置-输入法设置">
+<meta property="og:description" content="简单介绍am指令是 activity manager的缩写，可以启动Service、Broadcast，杀进程，监控等功能，这些功能都非常便捷调试程序。 可以通过adb shell 进入Android 的Linux命令界面，输入am -help查看详细命令，先介绍几个简单用法. 12345678&#x2F;&#x2F;使用Action方式打开系统设置-输入法设置am start -a android.settings">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2019-07-10T09:17:48.000Z">
-<meta property="article:modified_time" content="2020-04-22T09:56:46.712Z">
+<meta property="article:modified_time" content="2020-04-22T12:02:40.231Z">
 <meta property="article:author" content="William">
 <meta property="article:tag" content="Android">
 <meta property="article:tag" content="测试">
@@ -128,7 +128,7 @@
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">4</span></a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">5</span></a>
 
   </li>
         <li class="menu-item menu-item-archives">
@@ -201,7 +201,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-22 17:56:46" itemprop="dateModified" datetime="2020-04-22T17:56:46+08:00">2020-04-22</time>
+                <time title="修改时间：2020-04-22 20:02:40" itemprop="dateModified" datetime="2020-04-22T20:02:40+08:00">2020-04-22</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -240,7 +240,7 @@
       
         <h1 id="简单介绍"><a href="#简单介绍" class="headerlink" title="简单介绍"></a>简单介绍</h1><p>am指令是 activity manager的缩写，可以启动Service、Broadcast，杀进程，监控等功能，这些功能都非常便捷调试程序。</p>
 <p>可以通过adb shell 进入Android 的Linux命令界面，输入am -help查看详细命令，先介绍几个简单用法.</p>
-<figure class="highlight shell"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//使用Action方式打开系统设置-输入法设置</span><br><span class="line">am start -a android.settings.INPUT_METHOD_SETTINGS</span><br><span class="line"></span><br><span class="line">//使用Action方式打开网站https://amberweather.com</span><br><span class="line">am start -a android.intent.action.VIEW -d  https://amberweather.com</span><br><span class="line"></span><br><span class="line">//打开拨号界面，并传递一个DATA_URI数据给拨号界面</span><br><span class="line">am start -a android.intent.action.CALL -d tel:10086</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//使用Action方式打开系统设置-输入法设置</span><br><span class="line">am start -a android.settings.INPUT_METHOD_SETTINGS</span><br><span class="line"></span><br><span class="line">//使用Action方式打开网站https://amberweather.com</span><br><span class="line">am start -a android.intent.action.VIEW -d  https://amberweather.com</span><br><span class="line"></span><br><span class="line">//打开拨号界面，并传递一个DATA_URI数据给拨号界面</span><br><span class="line">am start -a android.intent.action.CALL -d tel:10086</span><br></pre></td></tr></table></figure>
 <a id="more"></a>
 
 <h1 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h1><p>通过<code>am -h</code>可以查看am完整的用法：</p>
@@ -320,10 +320,10 @@
 
 <p><strong>原理分析：am命令实的实现方式在Am.java，最终几乎都是调用ActivityManagerService相应的方法来完成的，am monitor除外。比如前面概述中介绍的命令am start -a android.intent.action.VIEW -d <a href="https://amberweather.com，" target="_blank" rel="noopener">https://amberweather.com，</a> 启动Acitivty最终调用的是ActivityManagerService类的startActivityAsUser()方法来完成的。再比如am kill-all命令，最终的实现工作是由ActivityManagerService的killBackgroundProcesses()方法完成的。</strong></p>
 <h1 id="启动Activity"><a href="#启动Activity" class="headerlink" title="启动Activity"></a>启动Activity</h1><p>主要是启动Activity命令am start [options] <INTENT>使用options参数，接下来列举Activity命令的[options]参数：</p>
-<figure class="highlight shell"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">-D:开启debug模式</span><br><span class="line">-W：等待启动完成</span><br><span class="line">--start-profiler&lt;FILE&gt;：将profiler中的结果输出到指定文件中</span><br><span class="line">-P：和--start-profiler一样，区别在于，在app进入idle状态时profiler结束</span><br><span class="line">-R &lt;Count&gt;： 重复启动Activity，但每次重复启动都会关闭掉最上面的Activity</span><br><span class="line">-S:关闭Activity所属的App进程后再启动Activity</span><br><span class="line">--opengl-trace:开启OpenGL tracing</span><br><span class="line">--user &lt;USER_ID&gt; ：使用指定的用户来启动activity，如果不输入，则使用当前用户执行</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">-D:开启debug模式</span><br><span class="line">-W：等待启动完成</span><br><span class="line">--start-profiler&lt;FILE&gt;：将profiler中的结果输出到指定文件中</span><br><span class="line">-P：和--start-profiler一样，区别在于，在app进入idle状态时profiler结束</span><br><span class="line">-R &lt;Count&gt;： 重复启动Activity，但每次重复启动都会关闭掉最上面的Activity</span><br><span class="line">-S:关闭Activity所属的App进程后再启动Activity</span><br><span class="line">--opengl-trace:开启OpenGL tracing</span><br><span class="line">--user &lt;USER_ID&gt; ：使用指定的用户来启动activity，如果不输入，则使用当前用户执行</span><br></pre></td></tr></table></figure>
 <p>启动Activity的实现原理： 存在-W参数则调用startActivityAndWait()方法来运行，否则startActivityAsUser()。</p>
 <h1 id="收紧内存"><a href="#收紧内存" class="headerlink" title="收紧内存"></a>收紧内存</h1><p>例如： 向pid=12345的进程，发出level=RUNNING_LOW的收紧内存命令</p>
-<figure class="highlight shell"><figcaption><span>&#123; .theme-peacock &#125;</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">am send-trim-memory 12345 RUNNING_LOW</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">am send-trim-memory 12345 RUNNING_LOW</span><br></pre></td></tr></table></figure>
 <p>level取值范围为： <code>HIDDEN</code>、<code>RUNNING_MODERATE</code>、<code>BACKGROUND</code>、<code>RUNNING_LOW</code>、<code>MODERATE</code>、<code>RUNNING_CRITICAL</code>、<code>COMPLETE</code></p>
 
     </div>
@@ -470,7 +470,7 @@
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-count">5</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -537,7 +537,7 @@
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">55 分钟</span>
+    <span title="站点阅读时长">54 分钟</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
   </div>
