@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"william-hl1991.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"always","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":"tue","color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideDownIn"}}};
+  </script>
+
+  <meta name="description" content="长久以来iOS上的电量测试相关信息都是很单一，唯一能获取电量详细信息的私有接口也在iOS9中被苹果官方封掉了。传统方案获取电量的路几乎在新的系统版本下被堵死，使得我们不得不寻求新的电量获取方式。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用iOS诊断进行iOS电量测试">
+<meta property="og:url" content="https://william-hl1991.github.io/2018/03/01/%E4%BD%BF%E7%94%A8iOS%E8%AF%8A%E6%96%AD%E8%BF%9B%E8%A1%8CiOS%E7%94%B5%E9%87%8F%E6%B5%8B%E8%AF%95/index.html">
+<meta property="og:site_name" content="William">
+<meta property="og:description" content="长久以来iOS上的电量测试相关信息都是很单一，唯一能获取电量详细信息的私有接口也在iOS9中被苹果官方封掉了。传统方案获取电量的路几乎在新的系统版本下被堵死，使得我们不得不寻求新的电量获取方式。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-03-01T05:18:05.000Z">
+<meta property="article:modified_time" content="2020-04-22T07:23:39.687Z">
+<meta property="article:author" content="William">
+<meta property="article:tag" content="iOS技术 - iOS - 电量">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://william-hl1991.github.io/2018/03/01/%E4%BD%BF%E7%94%A8iOS%E8%AF%8A%E6%96%AD%E8%BF%9B%E8%A1%8CiOS%E7%94%B5%E9%87%8F%E6%B5%8B%E8%AF%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>使用iOS诊断进行iOS电量测试 | William</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="William" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">William</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">不管走了多远都不要忘记为什么出发</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">2</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">1</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">2</span></a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://william-hl1991.github.io/2018/03/01/%E4%BD%BF%E7%94%A8iOS%E8%AF%8A%E6%96%AD%E8%BF%9B%E8%A1%8CiOS%E7%94%B5%E9%87%8F%E6%B5%8B%E8%AF%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="William">
+      <meta itemprop="description" content="工作总结与记录">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="William">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用iOS诊断进行iOS电量测试
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-03-01 13:18:05" itemprop="dateCreated datePublished" datetime="2018-03-01T13:18:05+08:00">2018-03-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-22 15:23:39" itemprop="dateModified" datetime="2020-04-22T15:23:39+08:00">2020-04-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/iOS/" itemprop="url" rel="index"><span itemprop="name">iOS</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>长久以来iOS上的电量测试相关信息都是很单一，唯一能获取电量详细信息的私有接口也在iOS9中被苹果官方封掉了。传统方案获取电量的路几乎在新的系统版本下被堵死，使得我们不得不寻求新的电量获取方式。</p>
+<a id="more"></a>
+
+<h1 id="什么是iOS-Diagnostics"><a href="#什么是iOS-Diagnostics" class="headerlink" title="什么是iOS Diagnostics"></a>什么是iOS Diagnostics</h1><p>iOS diagnostics 是iOS本身自带的诊断系统，在这个诊断系统中包含电量的相关信息记录，这些信息以Sqlite的形式保存，并定期传给苹果服务器，以供苹果相关人员分析。由此可以通过读取iOS系统记录的数据来进行电量测试，这个数据由iOS系统提供，并且记录了每个app的耗电量，故可以得到比较准确的耗电量信息。</p>
+<h1 id="如何通过诊断测试具体的耗电量"><a href="#如何通过诊断测试具体的耗电量" class="headerlink" title="如何通过诊断测试具体的耗电量"></a>如何通过诊断测试具体的耗电量</h1><p>测试过程中需要注意的点</p>
+<ul>
+<li><p>为保证测试的准确性尽量不要开启其他应用（系统应用除外）</p>
+</li>
+<li><p>记录下操作时间和对应的业务场景（用于还原业务对应的耗电量）</p>
+</li>
+<li><p>最好使用iOS10及以上的设备（便于收集电量数据）</p>
+<h2 id="iOS10及以上的设备"><a href="#iOS10及以上的设备" class="headerlink" title="iOS10及以上的设备"></a>iOS10及以上的设备</h2></li>
+</ul>
+<ol>
+<li>使用开发者账号下载profile证书，<a href="https://developer.apple.com/services-account/download?path=/iOS/iOS_Logs/BatteryLife.mobileconfig" target="_blank" rel="noopener">链接</a>。通过Airdrop安装到手机上。<ol start="2">
+<li>正常进行测试，记录下业务场景对应时间点。</li>
+<li>静置半个小时左右，通过iTunes同步到电脑。<br>在电脑上对应的目录如下：</li>
+</ol>
+</li>
+</ol>
+<p><code>macos:~/Library/Logs/CrashReporter/MobileDevice/[Your_Device_Name]/</code></p>
+<p><code>Windows:C:\Users\[Your_User_Name]\AppData\Roaming\AppleComputer\Logs\CrashReporter\MobileDevice\ [Your_Device_Name]\</code></p>
+<ol start="4">
+<li>电量数据库以”Powerlog_”开头，以”.PLSQL”<br>或者”.PLSQL.gz”结尾。</li>
+</ol>
+<h2 id="iOS10以下的设备"><a href="#iOS10以下的设备" class="headerlink" title="iOS10以下的设备"></a>iOS10以下的设备</h2><p>提供一个思路：可以通过 mitmproxy + diags://123456拦截接口的形式获得，接口：<a href="https://iosdiags.apple.com/ios/TestConfiguration/1.2" target="_blank" rel="noopener">https://iosdiags.apple.com/ios/TestConfiguration/1.2</a></p>
+<h1 id="电量数据库的解读与分析"><a href="#电量数据库的解读与分析" class="headerlink" title="电量数据库的解读与分析"></a>电量数据库的解读与分析</h1><style><br>table tr:hover {<br>    background: #efefef;<br>}<br>table td:nth-child(1) {<br>    word-wrap:break-word;<br>}<br>table td:nth-child(2) {<br>    word-wrap:break-word;<br>}<br>table td:nth-child(3) {<br>    word-wrap:break-word;<br>}<br></style>
+<table><thead><tr><th>表名</th><th>记录内容</th><th>使用意义</th></tr></thead><tbody><tr><td>PLAccountingOperator_EventNone_Nodes</td><td>记录了所有应用的noteID</td><td>得到系统应用和安装应用</td></tr><tr><td>PLAccountingOperator_Aggregate_RootNodeEnergy</td><td>记录了每个noteID的电量消耗</td><td>统计各个引用的耗电量</td></tr><tr><td>PLAppTimeService_Aggregate_AppRunTime</td><td>记录了app的运行状态，一小时记录一次</td><td>找到被测应用的运行时间段</td></tr><tr><td>PLBatteryAgent_EventBackward_Battery</td><td>记录了整机的电量变化，20秒记录一次（电压、电流、温度等等</td><td>详细电量的统计来源</td></tr><tr><td>PLIOReportAgent_EventBackward_EnergyModel</td><td>记录了IO相关的电量消耗（SoC、DRAM、IPS等等）</td><td>系统底层硬件的耗电量</td></tr><tr><td>PLSpringBoardAgent_Aggregate_SBNotifications_Aggregat</td><td>记录了推送通知的时间和数量</td><td>推送对耗电的影响</td></tr><tr><td>PLLocationAgent_EventForward_ClientStatus</td><td>定位的相关信息</td><td>定位信息对耗电的影响</td></tr></tbody></table>
+
+<p>综合上面的表数据库我们可以精确获取到app在某个时间段的电量消耗，一次记录下操作场景的时间段，之后通过读取数据库的数据，就可以精确获取该场景在该机器上的电量消耗情况。</p>
+<p>通过PLAppTimeService_Aggregate_AppRunTim 表获取到app的运行情况，然后根据app运行的情况PLAccountingOperator_Aggregate_RootNodeEne这个表获取到app的电量消耗情况。依据这里的耗电情况算出每个部分的耗电百分比，然后通过PLBatteryAgent_EventBackward_Battery可以获得此事件的详细耗电量（公式：W=UIt）。</p>
+<h1 id="iOS诊断耗电量测试总结"><a href="#iOS诊断耗电量测试总结" class="headerlink" title="iOS诊断耗电量测试总结"></a>iOS诊断耗电量测试总结</h1><p>首先装上对应的system debug证书，然后开始执行日常测试，记录下哪个时间段对应的是哪个场景，执行测试完成后，取下系统的电量数据库，对该次测试的各个场景的耗电量做一个全面的评价。</p>
+<h1 id="电量优化的方案"><a href="#电量优化的方案" class="headerlink" title="电量优化的方案"></a>电量优化的方案</h1><ol>
+<li>合理使用NSDateFormatter 和 NSCalendar这种高开销对象<br>性能测试表明，NSDateFormatter的性能瓶颈是由于NSDate格式到NSString格式的转化，所以把NSDateFormatter创建单例意义不大。推荐的做法是，把最常用到的日期格式做缓存。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">static NSDateFormatter *cachedDateFormatter &#x3D;nil;</span><br><span class="line"> + (NSDateFormatter *)cachedDateFormatter &#123;</span><br><span class="line">     if(!dateFormatter)&#123;</span><br><span class="line">       dateFormatter &#x3D; [[NSDateFormatter alloc] init];</span><br><span class="line">       [dateFormatter setDateFormat: @“YYYY-MM-dd HH:mm:ss”];</span><br><span class="line">     &#125;</span><br><span class="line">     return dataFormatter;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>不要频繁的刷新页面，尽量不要使用reloadData。</li>
+<li>图片处理<ul>
+<li>图片与imageView相同大小，避免多余运算</li>
+<li>可以使用整幅的图片，增加应用体积，但是节省CPU消耗</li>
+<li>可调整大小的图片，可以省去一些不必要的空间</li>
+<li>CALayer,CoreGraphics,甚至OpenGL来绘制，消耗CPU</li>
+</ul>
+</li>
+<li>选择正确的集合<ul>
+<li>NSArray，使用index来查找很快（插入和删除很慢）</li>
+<li>字典，使用键来查找很快</li>
+<li>NSSets，是无序的，用键查找很快，插入/删除很快</li>
+</ul>
+</li>
+<li>懒加载，不要一次性创建所有的subview，而是需要时才创建</li>
+<li>进行必要的缓存</li>
+<li>尽量减少透明或者半透明，会产生额外的运算</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div>如果对你有帮助，欢迎赞赏。</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpeg" alt="William 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="William 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>William
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://william-hl1991.github.io/2018/03/01/%E4%BD%BF%E7%94%A8iOS%E8%AF%8A%E6%96%AD%E8%BF%9B%E8%A1%8CiOS%E7%94%B5%E9%87%8F%E6%B5%8B%E8%AF%95/" title="使用iOS诊断进行iOS电量测试">https://william-hl1991.github.io/2018/03/01/使用iOS诊断进行iOS电量测试/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/iOS%E6%8A%80%E6%9C%AF-iOS-%E7%94%B5%E9%87%8F/" rel="tag"><i class="fa fa-tag"></i> iOS技术 - iOS - 电量</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/08/10/iOS%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2%E5%8E%9F%E5%9B%A0%E5%88%86%E6%9E%90/" rel="prev" title="iOS内存泄露原因分析">
+      <i class="fa fa-chevron-left"></i> iOS内存泄露原因分析
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#什么是iOS-Diagnostics"><span class="nav-text">什么是iOS Diagnostics</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#如何通过诊断测试具体的耗电量"><span class="nav-text">如何通过诊断测试具体的耗电量</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#iOS10及以上的设备"><span class="nav-text">iOS10及以上的设备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#iOS10以下的设备"><span class="nav-text">iOS10以下的设备</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#电量数据库的解读与分析"><span class="nav-text">电量数据库的解读与分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#iOS诊断耗电量测试总结"><span class="nav-text">iOS诊断耗电量测试总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#电量优化的方案"><span class="nav-text">电量优化的方案</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="William"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">William</p>
+  <div class="site-description" itemprop="description">工作总结与记录</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/William-HL1991" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;William-HL1991" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/zh-CN" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://william-hl1991.github.io/" title="https:&#x2F;&#x2F;william-hl1991.github.io">博客</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">William</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
