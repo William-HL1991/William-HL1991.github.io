@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://william-hl1991.github.io/"/>
-  <updated>2020-05-26T02:54:54.332Z</updated>
+  <updated>2020-11-27T03:08:24.045Z</updated>
   <id>https://william-hl1991.github.io/</id>
   
   <author>
@@ -15,6 +15,35 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>python数据处理效率</title>
+    <link href="https://william-hl1991.github.io/2020/11/27/python%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%95%88%E7%8E%87/"/>
+    <id>https://william-hl1991.github.io/2020/11/27/python%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%95%88%E7%8E%87/</id>
+    <published>2020-11-27T03:01:15.000Z</published>
+    <updated>2020-11-27T03:08:24.045Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="字典的过滤"><a href="#字典的过滤" class="headerlink" title="字典的过滤"></a>字典的过滤</h1><p>根据键或者值进行大量数据的字典过滤，应尽量选取生成器表达式，或者字典解析式，前者效率更好</p><p>以下是一个例子：</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime</span><br><span class="line"></span><br><span class="line">num_list = [<span class="number">5</span>, <span class="number">6</span>]</span><br><span class="line">d1 = &#123;</span><br><span class="line">    <span class="string">"1"</span>: <span class="number">2</span>,</span><br><span class="line">    <span class="string">"2"</span>: <span class="number">5</span>,</span><br><span class="line">    <span class="string">"3"</span>: <span class="number">6</span>,</span><br><span class="line">    <span class="string">"4"</span>: <span class="number">1</span>,</span><br><span class="line">    <span class="string">"5"</span>: <span class="number">3</span></span><br><span class="line">&#125;</span><br><span class="line">s1 = datetime.now()</span><br><span class="line">d2 = &#123;k: v <span class="keyword">for</span> k, v <span class="keyword">in</span> d1.items() <span class="keyword">if</span> v <span class="keyword">in</span> num_list&#125;</span><br><span class="line"><span class="keyword">print</span> d2</span><br><span class="line">s2 = datetime.now()</span><br><span class="line"><span class="keyword">print</span> (s2 - s1)</span><br><span class="line"></span><br><span class="line">s3 = datetime.now()</span><br><span class="line">d3 = (&#123;k, v&#125; <span class="keyword">for</span> k, v <span class="keyword">in</span> d1.items() <span class="keyword">if</span> v <span class="keyword">in</span> num_list)</span><br><span class="line"><span class="keyword">print</span> dict(list(d3))</span><br><span class="line">s4 = datetime.now()</span><br><span class="line"><span class="keyword">print</span> (s4 - s3)</span><br></pre></td></tr></table></figure><p>输出：</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;'3': 6, '2': 5&#125;</span><br><span class="line">0:00:00.001191</span><br><span class="line">3 6</span><br><span class="line">2 5</span><br><span class="line">&#123;'3': 6, '2': 5&#125;</span><br><span class="line">0:00:00.000033</span><br></pre></td></tr></table></figure><p>可见生成器表达式高出几个量级的处理效率，当然数据比较少的时候可以使用字典解析，占用较少的内存。</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h1 id=&quot;字典的过滤&quot;&gt;&lt;a href=&quot;#字典的过滤&quot; class=&quot;headerlink&quot; title=&quot;字典的过滤&quot;&gt;&lt;/a&gt;字典的过滤&lt;/h1&gt;&lt;p&gt;根据键或者值进行大量数据的字典过滤，应尽量选取生成器表达式，或者字典解析式，前者效率更好&lt;/p&gt;
+&lt;p&gt;以下是一个例
+      
+    
+    </summary>
+    
+    
+      <category term="Python" scheme="https://william-hl1991.github.io/categories/Python/"/>
+    
+    
+      <category term="python" scheme="https://william-hl1991.github.io/tags/python/"/>
+    
+      <category term="数据处理" scheme="https://william-hl1991.github.io/tags/%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86/"/>
+    
+  </entry>
   
   <entry>
     <title>解决github慢速问题</title>
@@ -147,9 +176,9 @@
       <category term="Android" scheme="https://william-hl1991.github.io/categories/Android/"/>
     
     
-      <category term="Android" scheme="https://william-hl1991.github.io/tags/Android/"/>
-    
       <category term="测试" scheme="https://william-hl1991.github.io/tags/%E6%B5%8B%E8%AF%95/"/>
+    
+      <category term="Android" scheme="https://william-hl1991.github.io/tags/Android/"/>
     
   </entry>
   
@@ -172,9 +201,9 @@
       <category term="iOS" scheme="https://william-hl1991.github.io/categories/iOS/"/>
     
     
-      <category term="测试" scheme="https://william-hl1991.github.io/tags/%E6%B5%8B%E8%AF%95/"/>
-    
       <category term="iOS" scheme="https://william-hl1991.github.io/tags/iOS/"/>
+    
+      <category term="测试" scheme="https://william-hl1991.github.io/tags/%E6%B5%8B%E8%AF%95/"/>
     
   </entry>
   
